@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  ultrastream:
+    container_name: ultrastream
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    ports:
+      - "3000:3000"
+    restart: always
+    networks:
+      - ultrastream-network
+
+networks:
+  ultrastream-network:
+    driver: bridge
