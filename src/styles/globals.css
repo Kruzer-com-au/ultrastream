@@ -264,6 +264,16 @@ textarea {
   min-height: 44px;
 }
 
+/* Portal journey section height — CSS media query for instant application (no hydration flash) */
+.portal-section-height {
+  height: 450vh;
+}
+@media (max-width: 767px) {
+  .portal-section-height {
+    height: 300vh;
+  }
+}
+
 /* Ripple effect */
 .ripple-container {
   position: relative;

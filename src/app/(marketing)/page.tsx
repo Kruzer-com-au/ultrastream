@@ -1,8 +1,6 @@
-import { ScrollProgress } from "@/components/animation/ScrollProgress";
 import { ScrollDepthTracker } from "@/components/analytics/scroll-depth-tracker";
-import { SectionTransitionWrapper } from "./sections/section-wrappers";
-import { PortalJourneyWrapper } from "./sections/portal-journey-wrapper";
 import { BattleGameWrapper } from "./sections/battle-wrapper";
+import { SectionTransitionWrapper } from "./sections/section-wrappers";
 import { VillainsSection } from "@/components/sections/villains-section";
 import { RevenueComparison } from "@/components/sections/revenue-section";
 import { FeaturesShowcase } from "@/components/sections/features-section";
@@ -18,21 +16,12 @@ export default function HomePage() {
   return (
     <WaitlistProvider>
       <div id="main-content" className="min-h-screen">
-        <ScrollProgress />
         <ScrollDepthTracker />
 
-        {/* ═══════════════════════════════════════════════════════════════
-            ACT 1-2: THE PORTAL JOURNEY
-            Stargate hero → Warp tunnel → Battle arena reveal
-            PortalJourney orchestrates the entire scroll-driven sequence.
-        ═══════════════════════════════════════════════════════════════ */}
-        <PortalJourneyWrapper>
-          <BattleGameWrapper />
-        </PortalJourneyWrapper>
+        {/* HERO: The game — no stargate, no portal, straight into the arena */}
+        <BattleGameWrapper />
 
-        {/* ═══════════════════════════════════════════════════════════════
-            ACT 3: THE VILLAINS — Who we're fighting
-        ═══════════════════════════════════════════════════════════════ */}
+        {/* ACT 3: THE VILLAINS — Who we're fighting */}
         <SectionTransitionWrapper effect="scale-up">
           <VillainsSection />
         </SectionTransitionWrapper>

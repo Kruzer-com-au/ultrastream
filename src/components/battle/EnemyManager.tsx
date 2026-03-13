@@ -2,9 +2,9 @@
 
 import { useRef, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import CorporateEnemy from './CorporateEnemy';
+import EnemyInstances from './EnemyInstances';
 import type { Enemy } from '@/hooks/useGameState';
-import { generateWaveEnemies, getWaveEnemyCount, getWaveDamage } from '@/hooks/useGameState';
+import { getWaveDamage } from '@/hooks/useGameState';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -16,11 +16,12 @@ interface EnemyManagerProps {
   gameStarted: boolean;
   gameOver: boolean;
   rebelsHealth: number;
+  isMobile: boolean;
   onDefeatEnemy: (id: string) => void;
   onNeutralizeEnemy: (id: string) => void;
   onDamageRebels: (amount: number) => void;
   onRemoveEnemy: (id: string) => void;
-  onSpawnWave: (wave: number) => void;
+  onSpawnWave: (wave: number, isMobile?: boolean) => void;
   onNextWave: () => void;
   onSetBetweenWaves: (nextWaveTime: number) => void;
   onUpdateEnemyPosition: (id: string, pos: [number, number, number]) => void;
@@ -41,6 +42,7 @@ export default function EnemyManager({
   gameStarted,
   gameOver,
   rebelsHealth,
+  isMobile,
   onDefeatEnemy,
   onNeutralizeEnemy,
   onDamageRebels,
@@ -58,7 +60,6 @@ export default function EnemyManager({
   const waveSpawned = useRef(false);
   const currentWaveRef = useRef(0);
   const betweenWaveStart = useRef(0);
-  const damageThrottle = useRef<Record<string, number>>({});
   const initialSpawnDone = useRef(false);
 
   // Track which enemies have reached center (to prevent multi-damage)
@@ -70,7 +71,6 @@ export default function EnemyManager({
       waveSpawned.current = false;
       currentWaveRef.current = 0;
       betweenWaveStart.current = 0;
-      damageThrottle.current = {};
       initialSpawnDone.current = false;
       reachedCenterSet.current.clear();
     }
@@ -103,7 +103,6 @@ export default function EnemyManager({
       if (gameOver) return;
       onDefeatEnemy(id);
       // Check if this hit will kill the enemy (health will reach 0)
-      // The reducer handles health decrement; we schedule removal only if enemy will die
       const enemy = enemies.find((e) => e.id === id);
       if (enemy && enemy.health <= 1) {
         // Enemy will die from this hit - remove after death animation
@@ -115,16 +114,6 @@ export default function EnemyManager({
     [gameOver, onDefeatEnemy, onRemoveEnemy, enemies]
   );
 
-  // --- Handle position update (from child) ---
-  const handlePositionUpdate = useCallback(
-    (id: string, pos: [number, number, number]) => {
-      // We don't call the parent on every frame to avoid re-renders.
-      // Position is tracked locally in the CorporateEnemy component.
-      // Only used if we need external tracking.
-    },
-    []
-  );
-
   // --- Game tick ---
   useFrame(() => {
     if (!gameStarted || gameOver) return;
@@ -133,14 +122,12 @@ export default function EnemyManager({
     if (!initialSpawnDone.current) {
       initialSpawnDone.current = true;
       currentWaveRef.current = wave;
-      onSpawnWave(wave);
+      onSpawnWave(wave, isMobile);
       waveSpawned.current = true;
       return;
     }
 
     // Check if current wave is cleared
-    // Use waveDefeatedCount vs waveTotalCount — this correctly tracks enemies
-    // that were clicked AND enemies that reached center (neutralized)
     const waveCleared = waveTotalCount > 0 && waveDefeatedCount >= waveTotalCount;
 
     if (waveCleared && !betweenWaves && waveSpawned.current) {
@@ -157,7 +144,6 @@ export default function EnemyManager({
     }
 
     // Between-waves countdown
-
     if (betweenWaves) {
       const elapsed = Date.now() - betweenWaveStart.current;
       if (elapsed >= 3000) {
@@ -165,7 +151,7 @@ export default function EnemyManager({
         const nextWave = currentWaveRef.current + 1;
         currentWaveRef.current = nextWave;
         onNextWave();
-        onSpawnWave(nextWave);
+        onSpawnWave(nextWave, isMobile);
         waveSpawned.current = true;
         reachedCenterSet.current.clear();
       }
@@ -179,24 +165,12 @@ export default function EnemyManager({
 
   return (
     <group>
-      {enemies.map((enemy) => (
-        <CorporateEnemy
-          key={enemy.id}
-          id={enemy.id}
-          position={enemy.position}
-          targetPosition={[0, 0, 0]}
-          speed={enemy.speed}
-          phrase={enemy.phrase}
-          isAlive={enemy.isAlive}
-          health={enemy.health}
-          maxHealth={enemy.maxHealth}
-          isBoss={enemy.isBoss}
-          bossColor={enemy.bossColor}
-          onDefeat={handleDefeat}
-          onReachCenter={handleReachCenter}
-          onPositionUpdate={handlePositionUpdate}
-        />
-      ))}
+      <EnemyInstances
+        enemies={enemies}
+        isMobile={isMobile}
+        onDefeat={handleDefeat}
+        onReachCenter={handleReachCenter}
+      />
     </group>
   );
 }

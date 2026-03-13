@@ -25,7 +25,7 @@ interface BattleSceneProps {
   onNeutralizeEnemy: (id: string) => void;
   onDamageRebels: (amount: number) => void;
   onRemoveEnemy: (id: string) => void;
-  onSpawnWave: (wave: number) => void;
+  onSpawnWave: (wave: number, isMobile?: boolean) => void;
   onNextWave: () => void;
   onSetBetweenWaves: (nextWaveTime: number) => void;
   onUpdateEnemyPosition: (id: string, pos: [number, number, number]) => void;
@@ -146,13 +146,13 @@ function ArenaRing() {
 function BattleLighting({ isMobile = false }: { isMobile?: boolean }) {
   return (
     <>
-      {/* Ambient – cold blue tone (slightly brighter on mobile to compensate for fewer lights) */}
-      <ambientLight intensity={isMobile ? 0.4 : 0.25} color="#4488cc" />
+      {/* Ambient -- cold blue tone (brighter on mobile to compensate for fewer lights) */}
+      <ambientLight intensity={isMobile ? 0.5 : 0.25} color="#4488cc" />
 
       {/* Main warm light on rebels */}
       <pointLight
         position={[0, 6, 0]}
-        intensity={isMobile ? 30 : 40}
+        intensity={isMobile ? 20 : 40}
         color="#ffd700"
         distance={12}
         decay={2}
@@ -171,14 +171,16 @@ function BattleLighting({ isMobile = false }: { isMobile?: boolean }) {
         shadow-mapSize-height={isMobile ? 256 : 512}
       />
 
-      {/* Rim lights – reduced on mobile for performance */}
-      <pointLight
-        position={[8, 2, 0]}
-        intensity={isMobile ? 10 : 15}
-        color="#ff0040"
-        distance={12}
-        decay={2}
-      />
+      {/* Rim lights -- desktop only */}
+      {!isMobile && (
+        <pointLight
+          position={[8, 2, 0]}
+          intensity={15}
+          color="#ff0040"
+          distance={12}
+          decay={2}
+        />
+      )}
       {!isMobile && (
         <pointLight
           position={[-8, 2, 0]}
@@ -197,13 +199,15 @@ function BattleLighting({ isMobile = false }: { isMobile?: boolean }) {
           decay={2}
         />
       )}
-      <pointLight
-        position={[0, 2, -8]}
-        intensity={isMobile ? 8 : 10}
-        color="#7b2ff7"
-        distance={12}
-        decay={2}
-      />
+      {!isMobile && (
+        <pointLight
+          position={[0, 2, -8]}
+          intensity={10}
+          color="#7b2ff7"
+          distance={12}
+          decay={2}
+        />
+      )}
     </>
   );
 }
@@ -246,11 +250,12 @@ export default function BattleScene({
         far: 100,
       }}
       shadows={!isMobile}
-      dpr={isMobile ? [1, 1.5] : [1, 2]}
+      dpr={isMobile ? [1, 1.2] : [1, 2]}
       style={{
         width: '100%',
         height: '100%',
         cursor: gameStarted && !gameOver ? 'crosshair' : 'default',
+        touchAction: 'none',
       }}
       gl={{
         antialias: !isMobile,
@@ -261,8 +266,8 @@ export default function BattleScene({
         camera.lookAt(0, 0, 0);
       }}
     >
-      {/* Fog for atmosphere */}
-      <fog attach="fog" args={['#050505', 8, 22]} />
+      {/* Fog for atmosphere -- disabled on mobile for performance */}
+      {!isMobile && <fog attach="fog" args={['#050505', 8, 22]} />}
 
       {/* Lighting */}
       <BattleLighting isMobile={isMobile} />
@@ -270,8 +275,8 @@ export default function BattleScene({
       {/* Ground */}
       <BattleGround />
 
-      {/* Arena decorations */}
-      <ArenaRing />
+      {/* Arena decorations (skip on mobile to save 2 meshes) */}
+      {!isMobile && <ArenaRing />}
 
       {/* Rebel Warriors (two fighters back-to-back) */}
       <RebelWarrior
@@ -279,21 +284,24 @@ export default function BattleScene({
         health={rebelHealth}
         isFighting={isFighting}
         mirrorSword={false}
+        isMobile={isMobile}
       />
       <RebelWarrior
         position={[0.5, 0, 0]}
         health={rebelHealth}
         isFighting={isFighting}
         mirrorSword={true}
+        isMobile={isMobile}
       />
 
-      {/* Enemy Manager */}
+      {/* Enemy Manager (now uses instanced rendering) */}
       <EnemyManager
         enemies={enemies}
         wave={wave}
         gameStarted={gameStarted}
         gameOver={gameOver}
         rebelsHealth={rebelsHealth}
+        isMobile={isMobile}
         onDefeatEnemy={onDefeatEnemy}
         onNeutralizeEnemy={onNeutralizeEnemy}
         onDamageRebels={onDamageRebels}

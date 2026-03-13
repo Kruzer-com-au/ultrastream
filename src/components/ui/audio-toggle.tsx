@@ -14,7 +14,7 @@ export function AudioToggle() {
     <button
       onClick={toggleMute}
       aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}
-      className="fixed bottom-6 right-6 z-[9998] w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer select-none"
+      className="fixed bottom-20 right-6 z-[55] w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer select-none"
       style={{
         background: 'rgba(5, 5, 5, 0.7)',
         border: '1px solid rgba(0, 212, 255, 0.2)',

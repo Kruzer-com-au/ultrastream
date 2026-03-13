@@ -2,7 +2,8 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
+// Html import removed — was blocking pointer events on the canvas
+// import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ---------------------------------------------------------------------------
@@ -14,6 +15,7 @@ interface RebelWarriorProps {
   health: number;
   isFighting: boolean;
   mirrorSword?: boolean;
+  isMobile?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +86,7 @@ export default function RebelWarrior({
   health,
   isFighting,
   mirrorSword = false,
+  isMobile = false,
 }: RebelWarriorProps) {
   // --- Refs for animation ---
   const groupRef = useRef<THREE.Group>(null);
@@ -473,14 +476,18 @@ export default function RebelWarrior({
   return (
     <group ref={groupRef} position={position}>
       {/* ====== NEON GLOW AURA (BackSide technique) ====== */}
-      <mesh ref={glowRef} position={[0, 0.75, 0]} material={mats.glow}>
-        <capsuleGeometry args={[0.38, 1.35, 8, 12]} />
-      </mesh>
+      {!isMobile && (
+        <mesh ref={glowRef} position={[0, 0.75, 0]} material={mats.glow}>
+          <capsuleGeometry args={[0.38, 1.35, 8, 12]} />
+        </mesh>
+      )}
 
       {/* ====== HIT FLASH OVERLAY ====== */}
-      <mesh position={[0, 0.75, 0]} material={mats.flash}>
-        <capsuleGeometry args={[0.36, 1.3, 8, 12]} />
-      </mesh>
+      {!isMobile && (
+        <mesh position={[0, 0.75, 0]} material={mats.flash}>
+          <capsuleGeometry args={[0.36, 1.3, 8, 12]} />
+        </mesh>
+      )}
 
       {/* ====== BODY GROUP (torso, animated as unit) ====== */}
       <group ref={bodyRef}>
@@ -490,14 +497,18 @@ export default function RebelWarrior({
         </mesh>
 
         {/* --- Chest plate (layered armor detail) --- */}
-        <mesh ref={chestRef} position={[0, 0.95, 0.14]} material={mats.gold}>
-          <boxGeometry args={[0.35, 0.3, 0.03]} />
-        </mesh>
+        {!isMobile && (
+          <mesh ref={chestRef} position={[0, 0.95, 0.14]} material={mats.gold}>
+            <boxGeometry args={[0.35, 0.3, 0.03]} />
+          </mesh>
+        )}
 
         {/* --- Chest center gem/emblem --- */}
-        <mesh position={[0, 0.98, 0.17]} material={mats.eyes}>
-          <sphereGeometry args={[0.035, 8, 8]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, 0.98, 0.17]} material={mats.eyes}>
+            <sphereGeometry args={[0.035, 8, 8]} />
+          </mesh>
+        )}
 
         {/* --- Lower Torso (narrower waist for V-taper) --- */}
         <mesh position={[0, 0.6, 0]} material={mats.darkIron} castShadow>
@@ -509,48 +520,58 @@ export default function RebelWarrior({
           <boxGeometry args={[0.42, 0.08, 0.25]} />
         </mesh>
         {/* Belt buckle */}
-        <mesh position={[0, 0.48, 0.13]} material={mats.gold}>
-          <boxGeometry args={[0.08, 0.06, 0.02]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, 0.48, 0.13]} material={mats.gold}>
+            <boxGeometry args={[0.08, 0.06, 0.02]} />
+          </mesh>
+        )}
 
         {/* ====== PAULDRONS (shoulder armor plates) ====== */}
-        {/* Right pauldron */}
-        <group position={[0.32, 1.22, 0]} rotation={[0, 0, -0.3]}>
-          <mesh material={mats.armor} castShadow>
-            <sphereGeometry args={[0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
-          </mesh>
-          {/* Pauldron spike */}
-          <mesh position={[0, 0.1, 0]} material={mats.gold}>
-            <coneGeometry args={[0.035, 0.1, 6]} />
-          </mesh>
-          {/* Pauldron trim */}
-          <mesh position={[0, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]} material={mats.gold}>
-            <torusGeometry args={[0.13, 0.015, 4, 10, Math.PI]} />
-          </mesh>
-        </group>
+        {!isMobile && (
+          <>
+            {/* Right pauldron */}
+            <group position={[0.32, 1.22, 0]} rotation={[0, 0, -0.3]}>
+              <mesh material={mats.armor} castShadow>
+                <sphereGeometry args={[0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+              </mesh>
+              {/* Pauldron spike */}
+              <mesh position={[0, 0.1, 0]} material={mats.gold}>
+                <coneGeometry args={[0.035, 0.1, 6]} />
+              </mesh>
+              {/* Pauldron trim */}
+              <mesh position={[0, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]} material={mats.gold}>
+                <torusGeometry args={[0.13, 0.015, 4, 10, Math.PI]} />
+              </mesh>
+            </group>
 
-        {/* Left pauldron */}
-        <group position={[-0.32, 1.22, 0]} rotation={[0, 0, 0.3]}>
-          <mesh material={mats.armor} castShadow>
-            <sphereGeometry args={[0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
-          </mesh>
-          {/* Pauldron spike */}
-          <mesh position={[0, 0.1, 0]} material={mats.gold}>
-            <coneGeometry args={[0.035, 0.1, 6]} />
-          </mesh>
-          {/* Pauldron trim */}
-          <mesh position={[0, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]} material={mats.gold}>
-            <torusGeometry args={[0.13, 0.015, 4, 10, Math.PI]} />
-          </mesh>
-        </group>
+            {/* Left pauldron */}
+            <group position={[-0.32, 1.22, 0]} rotation={[0, 0, 0.3]}>
+              <mesh material={mats.armor} castShadow>
+                <sphereGeometry args={[0.14, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
+              </mesh>
+              {/* Pauldron spike */}
+              <mesh position={[0, 0.1, 0]} material={mats.gold}>
+                <coneGeometry args={[0.035, 0.1, 6]} />
+              </mesh>
+              {/* Pauldron trim */}
+              <mesh position={[0, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]} material={mats.gold}>
+                <torusGeometry args={[0.13, 0.015, 4, 10, Math.PI]} />
+              </mesh>
+            </group>
+          </>
+        )}
 
         {/* ====== CAPE (multiple panels for slight movement) ====== */}
-        <mesh position={[0, 0.8, -0.17]} rotation={[0.08, 0, 0]} material={mats.cape}>
-          <planeGeometry args={[0.4, 0.65]} />
-        </mesh>
-        <mesh position={[0, 0.45, -0.19]} rotation={[0.12, 0, 0]} material={mats.cape}>
-          <planeGeometry args={[0.35, 0.35]} />
-        </mesh>
+        {!isMobile && (
+          <>
+            <mesh position={[0, 0.8, -0.17]} rotation={[0.08, 0, 0]} material={mats.cape}>
+              <planeGeometry args={[0.4, 0.65]} />
+            </mesh>
+            <mesh position={[0, 0.45, -0.19]} rotation={[0.12, 0, 0]} material={mats.cape}>
+              <planeGeometry args={[0.35, 0.35]} />
+            </mesh>
+          </>
+        )}
       </group>
 
       {/* ====== HEAD GROUP ====== */}
@@ -565,36 +586,40 @@ export default function RebelWarrior({
           <sphereGeometry args={[0.2, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
         </mesh>
 
-        {/* Helmet brow ridge */}
-        <mesh position={[0, -0.02, 0.01]} rotation={[0.1, 0, 0]} material={mats.gold}>
-          <torusGeometry args={[0.19, 0.018, 4, 12, Math.PI]} />
-        </mesh>
+        {!isMobile && (
+          <>
+            {/* Helmet brow ridge */}
+            <mesh position={[0, -0.02, 0.01]} rotation={[0.1, 0, 0]} material={mats.gold}>
+              <torusGeometry args={[0.19, 0.018, 4, 12, Math.PI]} />
+            </mesh>
 
-        {/* Helmet nose guard */}
-        <mesh position={[0, -0.04, 0.16]} material={mats.armor}>
-          <boxGeometry args={[0.025, 0.1, 0.05]} />
-        </mesh>
+            {/* Helmet nose guard */}
+            <mesh position={[0, -0.04, 0.16]} material={mats.armor}>
+              <boxGeometry args={[0.025, 0.1, 0.05]} />
+            </mesh>
 
-        {/* Helmet horns (stylized) */}
-        <mesh position={[0.15, 0.06, 0]} rotation={[0, 0, -0.7]} material={mats.gold}>
-          <coneGeometry args={[0.025, 0.14, 6]} />
-        </mesh>
-        <mesh position={[-0.15, 0.06, 0]} rotation={[0, 0, 0.7]} material={mats.gold}>
-          <coneGeometry args={[0.025, 0.14, 6]} />
-        </mesh>
+            {/* Helmet horns (stylized) */}
+            <mesh position={[0.15, 0.06, 0]} rotation={[0, 0, -0.7]} material={mats.gold}>
+              <coneGeometry args={[0.025, 0.14, 6]} />
+            </mesh>
+            <mesh position={[-0.15, 0.06, 0]} rotation={[0, 0, 0.7]} material={mats.gold}>
+              <coneGeometry args={[0.025, 0.14, 6]} />
+            </mesh>
 
-        {/* Glowing eyes */}
-        <mesh position={[0.055, -0.02, 0.14]} material={mats.eyes}>
-          <sphereGeometry args={[0.022, 6, 6]} />
-        </mesh>
-        <mesh position={[-0.055, -0.02, 0.14]} material={mats.eyes}>
-          <sphereGeometry args={[0.022, 6, 6]} />
-        </mesh>
+            {/* Glowing eyes */}
+            <mesh position={[0.055, -0.02, 0.14]} material={mats.eyes}>
+              <sphereGeometry args={[0.022, 6, 6]} />
+            </mesh>
+            <mesh position={[-0.055, -0.02, 0.14]} material={mats.eyes}>
+              <sphereGeometry args={[0.022, 6, 6]} />
+            </mesh>
 
-        {/* Jaw / chin (slight square jaw) */}
-        <mesh position={[0, -0.12, 0.04]} material={mats.skin}>
-          <boxGeometry args={[0.12, 0.06, 0.1]} />
-        </mesh>
+            {/* Jaw / chin (slight square jaw) */}
+            <mesh position={[0, -0.12, 0.04]} material={mats.skin}>
+              <boxGeometry args={[0.12, 0.06, 0.1]} />
+            </mesh>
+          </>
+        )}
       </group>
 
       {/* ====== SWORD ARM ====== */}
@@ -612,20 +637,26 @@ export default function RebelWarrior({
           <boxGeometry args={[0.1, 0.16, 0.1]} />
         </mesh>
         {/* Gauntlet trim */}
-        <mesh position={[0, -0.21, 0]} material={mats.gold}>
-          <boxGeometry args={[0.11, 0.02, 0.11]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -0.21, 0]} material={mats.gold}>
+            <boxGeometry args={[0.11, 0.02, 0.11]} />
+          </mesh>
+        )}
 
         {/* Hand */}
-        <mesh position={[0, -0.4, 0]} material={mats.skin}>
-          <sphereGeometry args={[0.045, 8, 8]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -0.4, 0]} material={mats.skin}>
+            <sphereGeometry args={[0.045, 8, 8]} />
+          </mesh>
+        )}
 
         {/* === SWORD === */}
         {/* Pommel (base sphere) */}
-        <mesh position={[0, -0.46, 0]} material={mats.gold}>
-          <sphereGeometry args={[0.03, 8, 8]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -0.46, 0]} material={mats.gold}>
+            <sphereGeometry args={[0.03, 8, 8]} />
+          </mesh>
+        )}
 
         {/* Sword handle */}
         <mesh position={[0, -0.54, 0]} material={mats.leather}>
@@ -637,12 +668,16 @@ export default function RebelWarrior({
           <boxGeometry args={[0.2, 0.035, 0.035]} />
         </mesh>
         {/* Crossguard end caps */}
-        <mesh position={[0.1, -0.45, 0]} material={mats.gold}>
-          <sphereGeometry args={[0.02, 6, 6]} />
-        </mesh>
-        <mesh position={[-0.1, -0.45, 0]} material={mats.gold}>
-          <sphereGeometry args={[0.02, 6, 6]} />
-        </mesh>
+        {!isMobile && (
+          <>
+            <mesh position={[0.1, -0.45, 0]} material={mats.gold}>
+              <sphereGeometry args={[0.02, 6, 6]} />
+            </mesh>
+            <mesh position={[-0.1, -0.45, 0]} material={mats.gold}>
+              <sphereGeometry args={[0.02, 6, 6]} />
+            </mesh>
+          </>
+        )}
 
         {/* Blade (ExtrudeGeometry diamond cross-section, rotated to extend downward) */}
         <mesh
@@ -654,18 +689,22 @@ export default function RebelWarrior({
         />
 
         {/* Blade glow (slightly larger, emissive, backside) */}
-        <mesh
-          ref={swordGlowRef}
-          position={[0, -0.9, 0]}
-          material={mats.swordGlow}
-        >
-          <boxGeometry args={[0.06, 0.82, 0.03]} />
-        </mesh>
+        {!isMobile && (
+          <mesh
+            ref={swordGlowRef}
+            position={[0, -0.9, 0]}
+            material={mats.swordGlow}
+          >
+            <boxGeometry args={[0.06, 0.82, 0.03]} />
+          </mesh>
+        )}
 
         {/* Blade tip */}
-        <mesh position={[0, -1.33, 0]} material={mats.sword}>
-          <coneGeometry args={[0.035, 0.1, 4]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -1.33, 0]} material={mats.sword}>
+            <coneGeometry args={[0.035, 0.1, 4]} />
+          </mesh>
+        )}
       </group>
 
       {/* ====== SHIELD ARM ====== */}
@@ -679,13 +718,17 @@ export default function RebelWarrior({
         </mesh>
 
         {/* Gauntlet */}
-        <mesh position={[0, -0.28, 0]} material={mats.armor} castShadow>
-          <boxGeometry args={[0.1, 0.16, 0.1]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -0.28, 0]} material={mats.armor} castShadow>
+            <boxGeometry args={[0.1, 0.16, 0.1]} />
+          </mesh>
+        )}
         {/* Gauntlet trim */}
-        <mesh position={[0, -0.21, 0]} material={mats.gold}>
-          <boxGeometry args={[0.11, 0.02, 0.11]} />
-        </mesh>
+        {!isMobile && (
+          <mesh position={[0, -0.21, 0]} material={mats.gold}>
+            <boxGeometry args={[0.11, 0.02, 0.11]} />
+          </mesh>
+        )}
 
         {/* Shield group */}
         <group position={[0, -0.32, 0.12]} rotation={[0.25, 0, 0]}>
@@ -693,97 +736,84 @@ export default function RebelWarrior({
           <mesh material={mats.shield}>
             <sphereGeometry args={[0.22, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
           </mesh>
-          {/* Shield flat back */}
-          <mesh position={[0, 0, -0.01]} material={mats.darkIron}>
-            <circleGeometry args={[0.21, 10]} />
-          </mesh>
-          {/* Shield rim (torus) */}
-          <mesh material={mats.shieldRim}>
-            <torusGeometry args={[0.22, 0.02, 6, 10]} />
-          </mesh>
-          {/* Shield boss (center bump) */}
-          <mesh position={[0, 0, 0.06]} material={mats.gold}>
-            <sphereGeometry args={[0.05, 8, 8]} />
-          </mesh>
-          {/* Shield cross decoration */}
-          <mesh position={[0, 0, 0.02]} material={mats.gold}>
-            <boxGeometry args={[0.04, 0.2, 0.01]} />
-          </mesh>
-          <mesh position={[0, 0, 0.02]} material={mats.gold}>
-            <boxGeometry args={[0.2, 0.04, 0.01]} />
-          </mesh>
+          {!isMobile && (
+            <>
+              {/* Shield flat back */}
+              <mesh position={[0, 0, -0.01]} material={mats.darkIron}>
+                <circleGeometry args={[0.21, 10]} />
+              </mesh>
+              {/* Shield rim (torus) */}
+              <mesh material={mats.shieldRim}>
+                <torusGeometry args={[0.22, 0.02, 6, 10]} />
+              </mesh>
+              {/* Shield boss (center bump) */}
+              <mesh position={[0, 0, 0.06]} material={mats.gold}>
+                <sphereGeometry args={[0.05, 8, 8]} />
+              </mesh>
+              {/* Shield cross decoration */}
+              <mesh position={[0, 0, 0.02]} material={mats.gold}>
+                <boxGeometry args={[0.04, 0.2, 0.01]} />
+              </mesh>
+              <mesh position={[0, 0, 0.02]} material={mats.gold}>
+                <boxGeometry args={[0.2, 0.04, 0.01]} />
+              </mesh>
+            </>
+          )}
         </group>
       </group>
 
       {/* ====== LEGS ====== */}
       {/* Left leg group */}
       <group ref={leftLegRef} position={[0.12, 0.3, 0]}>
-        {/* Upper leg (armored) */}
-        <mesh position={[0, -0.05, 0]} material={mats.darkIron} castShadow>
-          <boxGeometry args={[0.13, 0.28, 0.13]} />
+        {/* Upper leg (armored) — on mobile, single tall mesh replaces upper+lower+boot */}
+        <mesh position={[0, isMobile ? -0.18 : -0.05, 0]} material={mats.darkIron} castShadow>
+          <boxGeometry args={[0.13, isMobile ? 0.55 : 0.28, 0.13]} />
         </mesh>
-        {/* Knee guard */}
-        <mesh position={[0, -0.16, 0.06]} material={mats.armor}>
-          <sphereGeometry args={[0.05, 6, 6, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
-        </mesh>
-        {/* Lower leg */}
-        <mesh position={[0, -0.3, 0]} material={mats.darkIron} castShadow>
-          <boxGeometry args={[0.11, 0.22, 0.11]} />
-        </mesh>
-        {/* Boot */}
-        <mesh position={[0, -0.44, 0.02]} material={mats.leather}>
-          <boxGeometry args={[0.12, 0.08, 0.16]} />
-        </mesh>
+        {!isMobile && (
+          <>
+            {/* Knee guard */}
+            <mesh position={[0, -0.16, 0.06]} material={mats.armor}>
+              <sphereGeometry args={[0.05, 6, 6, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+            </mesh>
+            {/* Lower leg */}
+            <mesh position={[0, -0.3, 0]} material={mats.darkIron} castShadow>
+              <boxGeometry args={[0.11, 0.22, 0.11]} />
+            </mesh>
+            {/* Boot */}
+            <mesh position={[0, -0.44, 0.02]} material={mats.leather}>
+              <boxGeometry args={[0.12, 0.08, 0.16]} />
+            </mesh>
+          </>
+        )}
       </group>
 
       {/* Right leg group */}
       <group ref={rightLegRef} position={[-0.12, 0.3, 0]}>
-        {/* Upper leg */}
-        <mesh position={[0, -0.05, 0]} material={mats.darkIron} castShadow>
-          <boxGeometry args={[0.13, 0.28, 0.13]} />
+        {/* Upper leg — on mobile, single tall mesh replaces upper+lower+boot */}
+        <mesh position={[0, isMobile ? -0.18 : -0.05, 0]} material={mats.darkIron} castShadow>
+          <boxGeometry args={[0.13, isMobile ? 0.55 : 0.28, 0.13]} />
         </mesh>
-        {/* Knee guard */}
-        <mesh position={[0, -0.16, 0.06]} material={mats.armor}>
-          <sphereGeometry args={[0.05, 6, 6, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
-        </mesh>
-        {/* Lower leg */}
-        <mesh position={[0, -0.3, 0]} material={mats.darkIron} castShadow>
-          <boxGeometry args={[0.11, 0.22, 0.11]} />
-        </mesh>
-        {/* Boot */}
-        <mesh position={[0, -0.44, 0.02]} material={mats.leather}>
-          <boxGeometry args={[0.12, 0.08, 0.16]} />
-        </mesh>
+        {!isMobile && (
+          <>
+            {/* Knee guard */}
+            <mesh position={[0, -0.16, 0.06]} material={mats.armor}>
+              <sphereGeometry args={[0.05, 6, 6, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+            </mesh>
+            {/* Lower leg */}
+            <mesh position={[0, -0.3, 0]} material={mats.darkIron} castShadow>
+              <boxGeometry args={[0.11, 0.22, 0.11]} />
+            </mesh>
+            {/* Boot */}
+            <mesh position={[0, -0.44, 0.02]} material={mats.leather}>
+              <boxGeometry args={[0.12, 0.08, 0.16]} />
+            </mesh>
+          </>
+        )}
       </group>
 
-      {/* ====== HEALTH BAR (HTML overlay) ====== */}
-      <Html
-        position={[0, 1.85, 0]}
-        center
-        distanceFactor={8}
-        style={{ pointerEvents: 'none' }}
-      >
-        <div
-          style={{
-            width: 60,
-            height: 6,
-            background: 'rgba(0,0,0,0.7)',
-            borderRadius: 3,
-            overflow: 'hidden',
-            border: '1px solid rgba(255,215,0,0.3)',
-          }}
-        >
-          <div
-            style={{
-              width: `${health}%`,
-              height: '100%',
-              background: healthColour,
-              transition: 'width 0.3s ease, background 0.3s ease',
-              borderRadius: 3,
-            }}
-          />
-        </div>
-      </Html>
+      {/* Health bar removed — HUD shows rebel health globally.
+         drei Html overlays create wrapper divs with pointerEvents:auto
+         that block all R3F raycasting (clicks can't reach enemies). */}
     </group>
   );
 }

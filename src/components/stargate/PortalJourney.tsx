@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { useAudio } from '@/hooks/useAudio';
 import { PortalMessages } from './PortalMessages';
 import { BLOOM_MESSAGES } from '@/data/portal-messages';
+import { useIsMobile } from '@/lib/hooks/use-media-query';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger);
@@ -45,17 +46,21 @@ const DynamicWarpTunnel = dynamic(
 //
 // Architecture: ONE ScrollTrigger drives ALL phases.
 //
-// 450vh tall section with a 100vh pinned viewport.
+// Desktop: 450vh tall section, Mobile: 300vh (less finger travel).
 // The pinned viewport contains two stacked layers:
 //   Layer 1: StargateHero (3D portal + text)
 //   Layer 2: WarpTunnel (hyperspace transit)
+//
+// On MOBILE, canvas lifecycle is staggered to prevent two
+// simultaneous WebGL contexts from running (GPU killer).
+// Hero unmounts when warp takes over, behind the bloom mask.
 //
 // A white bloom overlay (fixed-position) masks transitions
 // between layers. The bloom lifecycle is COMPLETE within
 // the master ScrollTrigger -- it fades in AND out before
 // the pin releases, ensuring no stale overlays persist.
 //
-// Scroll phases (progress 0-1 over 350vh of scroll):
+// Scroll phases (progress 0-1):
 //   0.00 - 0.45: Hero phase (camera zooms into portal, text fades)
 //   0.40 - 0.55: Transition bloom (hero -> warp)
 //   0.48 - 0.88: Warp phase (hyperspace tunnel transit)
@@ -75,6 +80,14 @@ export function PortalJourney({ children }: PortalJourneyProps) {
   const pinRef = useRef<HTMLDivElement>(null);
   const battleRef = useRef<HTMLDivElement>(null);
 
+  const isMobile = useIsMobile();
+  const isMobileRef = useRef(false);
+
+  // Keep ref in sync for ScrollTrigger callback (avoids stale closure)
+  useEffect(() => {
+    isMobileRef.current = isMobile;
+  }, [isMobile]);
+
   // --- Refs for high-frequency ScrollTrigger updates (no re-renders) ---
   const heroProgressRef = useRef(0);
   const warpProgressRef = useRef(0);
@@ -82,6 +95,7 @@ export function PortalJourney({ children }: PortalJourneyProps) {
   const warpLayerOpRef = useRef(0);
   const bloomOpRef = useRef(0);
   const warpMountedRef = useRef(false);
+  const heroMountedRef = useRef(true);
 
   // --- React state for rendering (synced from refs every ~3 frames) ---
   const [heroProgress, setHeroProgress] = useState(0);
@@ -90,21 +104,23 @@ export function PortalJourney({ children }: PortalJourneyProps) {
   const [warpLayerOp, setWarpLayerOp] = useState(0);
   const [bloomOp, setBloomOp] = useState(0);
   const [warpVisible, setWarpVisible] = useState(false);
+  const [heroMounted, setHeroMounted] = useState(true);
 
   // --- Audio integration ---
   const { playPortalAmbience, playWarpAmbience, stopAllAmbience, playSFX } = useAudio();
   const audioPhaseRef = useRef<'none' | 'portal' | 'warp'>('none');
 
-  // --- Throttled state sync ---
-  // Reads refs and pushes to state every ~3 frames.
-  // React 18+ batches all setState calls into a single re-render.
+  // --- Visibility-gated state sync ---
+  // Only syncs refs → state when section is in/near viewport.
+  // Stops rAF work when user scrolls past the portal section.
   useEffect(() => {
     let frameCount = 0;
-    let rafId: number;
+    let rafId: number | null = null;
+    let isVisible = true;
 
     function sync() {
       frameCount++;
-      if (frameCount % 3 === 0) {
+      if (frameCount % 3 === 0 && isVisible) {
         setHeroProgress(heroProgressRef.current);
         setWarpProgress(warpProgressRef.current);
         setHeroLayerOp(heroLayerOpRef.current);
@@ -113,9 +129,25 @@ export function PortalJourney({ children }: PortalJourneyProps) {
       }
       rafId = requestAnimationFrame(sync);
     }
+
+    // IntersectionObserver: pause sync when section is off-screen
+    let observer: IntersectionObserver | null = null;
+    if (sectionRef.current) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          isVisible = entry.isIntersecting;
+        },
+        { rootMargin: '200px' }
+      );
+      observer.observe(sectionRef.current);
+    }
+
     rafId = requestAnimationFrame(sync);
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      observer?.disconnect();
+    };
   }, []);
 
   // === MASTER SCROLL ORCHESTRATION ===
@@ -135,6 +167,7 @@ export function PortalJourney({ children }: PortalJourneyProps) {
         scrub: true,
         onUpdate: (self) => {
           const p = self.progress;
+          const mobile = isMobileRef.current;
 
           // --- Compute phase progress ---
           // Hero: 0->1 over progress 0->0.45
@@ -146,8 +179,40 @@ export function PortalJourney({ children }: PortalJourneyProps) {
             Math.min(1, (p - 0.48) / 0.40)
           );
 
-          // --- Mount warp tunnel early for GPU initialization ---
-          if (p > 0.35 && !warpMountedRef.current) {
+          // --- Mount/unmount canvas lifecycle ---
+          if (mobile) {
+            // MOBILE: Stagger canvases to avoid 2 simultaneous WebGL contexts
+            // Mount warp at 0.42 (later than desktop, just before bloom covers hero)
+            if (p > 0.42 && !warpMountedRef.current) {
+              warpMountedRef.current = true;
+              setWarpVisible(true);
+            }
+            // Unmount hero canvas once bloom fully covers it (0.48)
+            if (p > 0.48 && heroMountedRef.current) {
+              heroMountedRef.current = false;
+              setHeroMounted(false);
+            }
+            // Re-mount hero if scrolling back up
+            if (p < 0.40 && !heroMountedRef.current) {
+              heroMountedRef.current = true;
+              setHeroMounted(true);
+            }
+          } else {
+            // DESKTOP: Mount warp early for GPU warm-up (both canvases can coexist)
+            if (p > 0.35 && !warpMountedRef.current) {
+              warpMountedRef.current = true;
+              setWarpVisible(true);
+            }
+          }
+
+          // --- Unmount warp canvas after exit bloom completes ---
+          // Frees WebGL context before battle section takes over
+          if (p > 0.96 && warpMountedRef.current) {
+            warpMountedRef.current = false;
+            setWarpVisible(false);
+          }
+          // Re-mount warp if scrolling back into warp phase
+          if (p < 0.90 && p > 0.35 && !warpMountedRef.current) {
             warpMountedRef.current = true;
             setWarpVisible(true);
           }
@@ -233,27 +298,30 @@ export function PortalJourney({ children }: PortalJourneyProps) {
   return (
     <>
       {/* ============================================================
-          PORTAL JOURNEY SECTION -- 450vh tall scroll container
+          PORTAL JOURNEY SECTION -- scroll container
+          Desktop: 450vh, Mobile: 300vh (CSS media query avoids flash)
           Contains the pinned viewport with hero + warp layers.
           ============================================================ */}
       <section
         ref={sectionRef}
-        className="relative w-full"
-        style={{ height: '450vh' }}
+        className="relative w-full portal-section-height"
         id="portal-journey"
       >
         {/* Pinned viewport: sticks to screen while section scrolls */}
         <div
           ref={pinRef}
           className="relative w-full overflow-hidden"
-          style={{ height: '100vh', background: '#050505' }}
+          style={{ height: '100vh', background: '#050505', willChange: 'transform' }}
         >
           {/* Layer 1: Stargate Hero (3D portal + text overlay) */}
+          {/* On mobile, unmounted once warp takes over to free GPU */}
           <div
             className="absolute inset-0"
             style={{ zIndex: 1, opacity: heroLayerOp }}
           >
-            <DynamicStargateHero scrollProgress={heroProgress} />
+            {heroMounted && (
+              <DynamicStargateHero scrollProgress={heroProgress} />
+            )}
           </div>
 
           {/* Layer 2: Warp Tunnel (hyperspace transit) */}
@@ -263,7 +331,7 @@ export function PortalJourney({ children }: PortalJourneyProps) {
           >
             {warpVisible && (
               <>
-                <DynamicWarpTunnel progress={warpProgress} visible={true} />
+                <DynamicWarpTunnel progress={warpProgress} visible={true} isMobile={isMobile} />
 
                 {/* Portal messages -- scroll-driven text during warp phase */}
                 <PortalMessages warpProgress={warpProgress} />

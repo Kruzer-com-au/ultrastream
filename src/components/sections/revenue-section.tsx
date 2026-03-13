@@ -78,7 +78,7 @@ function RevenueBar({
   return (
     <div ref={barRef} className="mb-8 last:mb-0">
       {/* Platform label */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mb-3">
         <div className="flex items-center gap-3">
           <span
             className={`text-display-sm font-bold ${isHero ? "text-gold" : "text-text-secondary"}`}

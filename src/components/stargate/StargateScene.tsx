@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 import { useMouseParallax } from "@/hooks/useMouseParallax";
+import { useIsMobile } from "@/lib/hooks/use-media-query";
 import { StargateRing } from "./StargateRing";
 import { EventHorizon } from "./EventHorizon";
 import { PortalKawoosh } from "./PortalKawoosh";
@@ -179,19 +180,27 @@ interface StargateSceneProps {
 
 export function StargateScene({ scrollProgress = 0 }: StargateSceneProps) {
   const mousePosition = useMouseParallax(0.05);
+  const isMobile = useIsMobile();
   const [dpr, setDpr] = useState<[number, number]>([1, 2]);
   const [activationProgress, setActivationProgress] = useState(0);
   const [kawooshTriggered, setKawooshTriggered] = useState(false);
   const [activated, setActivated] = useState(false);
   const animationRef = useRef<number>(0);
 
+  // Cap DPR for mobile on mount/change
+  useEffect(() => {
+    if (isMobile) {
+      setDpr([1, 1.5]);
+    }
+  }, [isMobile]);
+
   const handleIncline = useCallback(() => {
-    setDpr([1, 2]);
-  }, []);
+    setDpr(isMobile ? [1, 1.5] : [1, 2]);
+  }, [isMobile]);
 
   const handleDecline = useCallback(() => {
-    setDpr([1, 1.5]);
-  }, []);
+    setDpr(isMobile ? [1, 1] : [1, 1.5]);
+  }, [isMobile]);
 
   // Enhanced activation sequence with dramatic pauses at chevron locks
   useEffect(() => {
@@ -357,7 +366,7 @@ export function StargateScene({ scrollProgress = 0 }: StargateSceneProps) {
           />
 
           {/* Event horizon portal surface -- intensifies with zoom */}
-          <EventHorizon activation={activationProgress} zoomIntensity={scrollProgress} />
+          <EventHorizon activation={activationProgress} zoomIntensity={scrollProgress} mobile={isMobile} />
 
           {/* Kawoosh particle explosion */}
           <PortalKawoosh triggered={kawooshTriggered} />

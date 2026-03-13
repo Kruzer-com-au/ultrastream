@@ -38,6 +38,10 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
+    // Detect mobile for touch-specific tuning
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      || window.innerWidth < 768;
+
     // Initialize Lenis
     const lenis = new Lenis({
       duration: prefersReducedMotion ? 0 : 1.2,
@@ -45,7 +49,7 @@ export function LenisProvider({ children }: { children: ReactNode }) {
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: !prefersReducedMotion,
-      touchMultiplier: 2,
+      touchMultiplier: isMobile ? 1.2 : 2,
     });
 
     lenisRef.current = lenis;

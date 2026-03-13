@@ -120,7 +120,7 @@ export default function MarketingLayout({
         </div>
       )}
 
-      <main role="main" className="min-h-screen">
+      <main role="main" className="min-h-screen pt-[77px]">
         {children}
       </main>
 

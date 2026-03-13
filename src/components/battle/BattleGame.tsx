@@ -114,6 +114,9 @@ export default function BattleGame() {
 
   // Start / restart game (preserves player info for returning players)
   const handleStartGame = useCallback(() => {
+    // Explicit audio context unlock (required for mobile):
+    // Playing an SFX on user tap triggers AudioContext.resume() internally
+    playSFX('wave-start');
     const savedEmail = playerEmail;
     const savedNickname = playerNickname;
     resetGame();
@@ -124,7 +127,7 @@ export default function BattleGame() {
       }
       startGame();
     }, 50);
-  }, [resetGame, startGame, playerEmail, playerNickname, setPlayer]);
+  }, [resetGame, startGame, playerEmail, playerNickname, setPlayer, playSFX]);
 
   // CTA handler - scroll to waitlist or navigate
   const handleJoinRevolution = useCallback(() => {
@@ -146,12 +149,14 @@ export default function BattleGame() {
 
   // Contextual bottom message
   const getContextMessage = (): string => {
+    const tapOrClick = isMobile ? 'Tap' : 'Click';
+    const tappingOrClicking = isMobile ? 'tapping' : 'clicking';
     if (!gameStarted) return 'Corporate giants are exploiting creators. Time to fight back.';
     if (gameOver) return 'The old platforms can\'t be beaten alone. Join ULTRASTREAM \u2014 where creators fight back.';
-    if (wave === 1) return 'Click on the corporate enemies to defeat them!';
-    if (wave === 2) return 'More suits incoming \u2014 keep clicking!';
+    if (wave === 1) return `${tapOrClick} on the corporate enemies to defeat them!`;
+    if (wave === 2) return `More suits incoming \u2014 keep ${tappingOrClicking}!`;
     if (wave === 3) return 'They just keep coming... how long can you hold?';
-    if (rebelsHealth < 30) return 'The rebels are weakening! Click faster!';
+    if (rebelsHealth < 30) return `The rebels are weakening! ${tapOrClick} faster!`;
     return `Wave ${wave} \u2014 the corporate machine never stops.`;
   };
 
@@ -168,6 +173,8 @@ export default function BattleGame() {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        touchAction: 'none',
+        overscrollBehavior: 'none',
       }}
     >
       {/* ---- Section header ---- */}
@@ -252,6 +259,7 @@ export default function BattleGame() {
           playerNickname={playerNickname}
           playerEmail={playerEmail}
           victory={victory}
+          enemies={enemies}
           onStartGame={handleStartGame}
           onJoinRevolution={handleJoinRevolution}
           onSetPlayer={setPlayer}

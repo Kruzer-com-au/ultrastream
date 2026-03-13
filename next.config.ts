@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Fix workspace root detection (stray lockfile in parent dir)
+  turbopack: {
+    root: process.cwd(),
+  },
   // Image optimization: serve modern formats automatically
   images: {
     formats: ["image/avif", "image/webp"],

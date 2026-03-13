@@ -50,6 +50,11 @@ export function useGPUDetect(): GPUDetectResult {
 
         let tier = gpuTier.tier;
 
+        // Mobile devices cap at tier 2 (never tier 3)
+        if (isMobile && tier > 2) {
+          tier = 2;
+        }
+
         // Downgrade if mobile + low cores
         if (isMobile && lowCores && tier > 1) {
           tier = 1;

@@ -59,7 +59,7 @@ export function Footer() {
             &copy; {currentYear} ULTRASTREAM. All rights reserved.
           </p>
 
-          {/* Social links placeholder */}
+          {/* Social links */}
           <div className="flex items-center gap-4">
             <SocialIcon label="Twitter / X" d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
             <SocialIcon label="Discord" d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026 13.83 13.83 0 0 0 1.226-1.963.074.074 0 0 0-.041-.104 13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.028z" />
@@ -79,10 +79,7 @@ export function Footer() {
             href="https://tdsaustralia.com.au"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-body mt-1 inline-block transition-colors duration-300"
-            style={{ color: 'rgba(0, 212, 255, 0.5)' }}
-            onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#00d4ff'; }}
-            onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'rgba(0, 212, 255, 0.5)'; }}
+            className="text-xs font-body mt-1 inline-block transition-colors duration-300 text-[rgba(0,212,255,0.5)] hover:text-[#00d4ff] active:text-[#00d4ff]"
           >
             Top Branding Design Agency in Australia
           </a>
@@ -96,10 +93,7 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="text-xs font-body tracking-[0.15em] uppercase transition-colors duration-300"
-      style={{ color: 'rgba(160, 160, 176, 0.5)' }}
-      onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#00d4ff'; }}
-      onMouseLeave={(e) => { (e.target as HTMLElement).style.color = 'rgba(160, 160, 176, 0.5)'; }}
+      className="text-xs font-body tracking-[0.15em] uppercase transition-colors duration-300 py-3 min-h-[44px] inline-flex items-center text-[rgba(160,160,176,0.5)] hover:text-[#00d4ff] active:text-[#00d4ff]"
     >
       {children}
     </Link>
@@ -111,23 +105,11 @@ function SocialIcon({ label, d }: { label: string; d: string }) {
     <a
       href="#"
       aria-label={label}
-      className="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110"
-      style={{
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'rgba(255, 255, 255, 0.03)',
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0, 212, 255, 0.3)';
-        (e.currentTarget as HTMLElement).style.background = 'rgba(0, 212, 255, 0.05)';
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255, 255, 255, 0.08)';
-        (e.currentTarget as HTMLElement).style.background = 'rgba(255, 255, 255, 0.03)';
-      }}
+      className="w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-105 border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] hover:border-[rgba(0,212,255,0.3)] hover:bg-[rgba(0,212,255,0.05)] active:border-[rgba(0,212,255,0.3)] active:bg-[rgba(0,212,255,0.05)]"
     >
       <svg
-        width="14"
-        height="14"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="rgba(160, 160, 176, 0.6)"
         xmlns="http://www.w3.org/2000/svg"

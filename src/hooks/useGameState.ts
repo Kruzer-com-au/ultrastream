@@ -302,9 +302,13 @@ function pickPhrase(): string {
   return PHRASES[Math.floor(Math.random() * PHRASES.length)];
 }
 
-export function getWaveEnemyCount(wave: number): number {
-  // Aggressive difficulty: starts at 20, doubles every wave, capped at 500
-  return Math.min(500, 20 * Math.pow(2, wave - 1));
+export function getWaveEnemyCount(wave: number, isMobile = false): number {
+  if (isMobile) {
+    // Mobile: starts at 7, grows to 15 max
+    return Math.min(15, 5 + wave * 2);
+  }
+  // Desktop: aggressive difficulty, capped at 200 (was 500)
+  return Math.min(200, 20 * Math.pow(2, wave - 1));
 }
 
 export function getWaveSpeed(wave: number): number {
@@ -325,9 +329,9 @@ export function getWaveDamage(wave: number): number {
   return Math.min(15, 11 + Math.floor((wave - 50) * 0.08)); // 11-15
 }
 
-export function generateWaveEnemies(wave: number): Enemy[] {
-  const count = getWaveEnemyCount(wave);
-  const baseSpeed = getWaveSpeed(wave);
+export function generateWaveEnemies(wave: number, isMobile = false): Enemy[] {
+  const count = getWaveEnemyCount(wave, isMobile);
+  const baseSpeed = getWaveSpeed(wave) * (isMobile ? 1.2 : 1.0);
   const enemies: Enemy[] = [];
   const isBossWave = wave % 5 === 0 && wave > 0;
 
@@ -416,8 +420,8 @@ export function useGameState() {
     dispatch({ type: 'START_GAME' });
   }, []);
 
-  const spawnWave = useCallback((wave: number) => {
-    const enemies = generateWaveEnemies(wave);
+  const spawnWave = useCallback((wave: number, isMobile = false) => {
+    const enemies = generateWaveEnemies(wave, isMobile);
     dispatch({ type: 'SPAWN_WAVE', payload: enemies });
   }, []);
 

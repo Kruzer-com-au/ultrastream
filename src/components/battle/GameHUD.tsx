@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { generateNickname } from '@/lib/nickname-generator';
 import { useIsMobile } from '@/lib/hooks/use-media-query';
 import { Leaderboard } from './Leaderboard';
+import type { Enemy } from '@/hooks/useGameState';
 
 // ---------------------------------------------------------------------------
 // Kill message pool
@@ -35,6 +36,7 @@ interface GameHUDProps {
   playerNickname: string | null;
   playerEmail: string | null;
   victory: boolean;
+  enemies?: Enemy[];
   onStartGame: () => void;
   onJoinRevolution: () => void;
   onSetPlayer: (email: string | null, nickname: string) => void;
@@ -53,6 +55,7 @@ export default function GameHUD({
   playerNickname,
   playerEmail,
   victory,
+  enemies = [],
   onStartGame,
   onJoinRevolution,
   onSetPlayer,
@@ -228,6 +231,34 @@ export default function GameHUD({
         ? '0 0 10px rgba(234,179,8,0.4)'
         : '0 0 10px rgba(239,68,68,0.5)';
 
+  // --- Boss health bar (HUD-level, not per-enemy Html) ---
+  const activeBoss = enemies.find((e) => e.isBoss && e.isAlive && e.health > 0);
+
+  // --- Speech bubble (single rotating phrase from alive enemies) ---
+  const [speechPhrase, setSpeechPhrase] = useState<string | null>(null);
+  const speechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!gameStarted || gameOver) {
+      setSpeechPhrase(null);
+      return;
+    }
+    const tick = () => {
+      const alive = enemies.filter((e) => e.isAlive);
+      if (alive.length > 0) {
+        const picked = alive[Math.floor(Math.random() * alive.length)];
+        setSpeechPhrase(picked.phrase);
+      } else {
+        setSpeechPhrase(null);
+      }
+      speechTimerRef.current = setTimeout(tick, 2500 + Math.random() * 2000);
+    };
+    tick();
+    return () => {
+      if (speechTimerRef.current) clearTimeout(speechTimerRef.current);
+    };
+  }, [gameStarted, gameOver, enemies]);
+
   return (
     <div
       style={{
@@ -353,6 +384,84 @@ export default function GameHUD({
             </div>
           )}
 
+          {/* Boss health bar - top center (HUD-level) */}
+          {activeBoss && (
+            <div
+              style={{
+                position: 'absolute',
+                top: isMobile ? 38 : 54,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <div
+                style={{
+                  color: activeBoss.bossColor || '#ff0040',
+                  fontSize: isMobile ? 12 : 16,
+                  fontWeight: 900,
+                  letterSpacing: 4,
+                  textTransform: 'uppercase',
+                  textShadow: `0 0 12px ${activeBoss.bossColor || '#ff0040'}, 0 0 24px ${activeBoss.bossColor || '#ff0040'}80`,
+                }}
+              >
+                BOSS
+              </div>
+              <div
+                style={{
+                  width: isMobile ? 140 : 200,
+                  height: isMobile ? 8 : 10,
+                  background: 'rgba(0,0,0,0.85)',
+                  borderRadius: 5,
+                  overflow: 'hidden',
+                  border: `2px solid ${activeBoss.bossColor || '#ff0040'}70`,
+                }}
+              >
+                <div
+                  style={{
+                    width: `${(activeBoss.health / activeBoss.maxHealth) * 100}%`,
+                    height: '100%',
+                    background: `linear-gradient(90deg, ${activeBoss.bossColor || '#ff0040'}, ${activeBoss.bossColor || '#ff0040'}cc)`,
+                    borderRadius: 5,
+                    transition: 'width 0.15s ease',
+                    boxShadow: `0 0 10px ${activeBoss.bossColor || '#ff0040'}90`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Enemy speech bubble (single rotating phrase, HUD-level) */}
+          {speechPhrase && (
+            <div
+              style={{
+                position: 'absolute',
+                top: activeBoss ? (isMobile ? 80 : 100) : (isMobile ? 40 : 54),
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: 'rgba(30,0,0,0.9)',
+                color: '#ff4444',
+                padding: isMobile ? '6px 14px' : '8px 18px',
+                borderRadius: 6,
+                fontSize: isMobile ? 11 : 14,
+                fontWeight: 800,
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+                border: '1px solid rgba(255,0,64,0.4)',
+                textShadow: '0 0 8px rgba(255,0,64,0.6)',
+                whiteSpace: 'nowrap',
+                maxWidth: isMobile ? '80vw' : 400,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {speechPhrase}
+            </div>
+          )}
+
           {/* Rebels health bar - bottom center */}
           <div
             style={{
@@ -472,7 +581,7 @@ export default function GameHUD({
                     marginBottom: 16,
                   }}
                 >
-                  CLICK TO FIGHT
+                  {isMobile ? 'TAP TO FIGHT' : 'CLICK TO FIGHT'}
                 </div>
                 <div
                   style={{
@@ -483,7 +592,7 @@ export default function GameHUD({
                     textAlign: 'center',
                   }}
                 >
-                  Click on corporate enemies to defeat them
+                  {isMobile ? 'Tap on corporate enemies to defeat them' : 'Click on corporate enemies to defeat them'}
                 </div>
               </div>
             </>
@@ -579,7 +688,8 @@ export default function GameHUD({
                     fontWeight: 500,
                     letterSpacing: 1,
                     cursor: 'pointer',
-                    padding: isMobile ? '10px 16px' : '4px 8px',
+                    padding: isMobile ? '14px 16px' : '4px 8px',
+                    minHeight: isMobile ? 44 : undefined,
                     textDecoration: 'underline',
                     textUnderlineOffset: 3,
                   }}
@@ -633,7 +743,7 @@ export default function GameHUD({
                     marginBottom: 16,
                   }}
                 >
-                  CLICK TO FIGHT
+                  {isMobile ? 'TAP TO FIGHT' : 'CLICK TO FIGHT'}
                 </div>
                 <div
                   style={{
@@ -644,7 +754,7 @@ export default function GameHUD({
                     textAlign: 'center',
                   }}
                 >
-                  Click on corporate enemies to defeat them
+                  {isMobile ? 'Tap on corporate enemies to defeat them' : 'Click on corporate enemies to defeat them'}
                 </div>
               </div>
             </>
@@ -892,7 +1002,8 @@ export default function GameHUD({
                 fontWeight: 500,
                 letterSpacing: 1,
                 cursor: 'pointer',
-                padding: isMobile ? '10px 16px' : '4px 8px',
+                padding: isMobile ? '14px 16px' : '4px 8px',
+                minHeight: isMobile ? 44 : undefined,
                 textDecoration: 'underline',
                 textUnderlineOffset: 3,
                 marginTop: 4,
@@ -943,7 +1054,8 @@ export default function GameHUD({
                 <button
                   onClick={handleReLogin}
                   style={{
-                    padding: isMobile ? '10px 20px' : '6px 16px',
+                    padding: isMobile ? '14px 20px' : '6px 16px',
+                    minHeight: isMobile ? 44 : undefined,
                     fontSize: 11,
                     fontWeight: 800,
                     letterSpacing: 2,
@@ -960,7 +1072,8 @@ export default function GameHUD({
                 <button
                   onClick={() => { setShowReLogin(false); setReLoginError(null); }}
                   style={{
-                    padding: isMobile ? '10px 20px' : '6px 16px',
+                    padding: isMobile ? '14px 20px' : '6px 16px',
+                    minHeight: isMobile ? 44 : undefined,
                     fontSize: 11,
                     fontWeight: 600,
                     color: '#6b7280',

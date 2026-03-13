@@ -297,7 +297,7 @@ export function StargateHero({ scrollProgress = 0 }: StargateHeroProps) {
           />
           {/* Button text — gold gradient for readability */}
           <span
-            className="relative text-base md:text-lg font-display font-black tracking-[0.3em] uppercase"
+            className="relative text-sm sm:text-base md:text-lg font-display font-black tracking-[0.1em] sm:tracking-[0.3em] uppercase"
             style={{
               background:
                 "linear-gradient(90deg, #b8860b 0%, #ffd700 30%, #fff5c2 50%, #ffd700 70%, #b8860b 100%)",

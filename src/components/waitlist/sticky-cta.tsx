@@ -13,7 +13,7 @@ export function StickyCTA() {
   const { handleSuccess } = useWaitlist();
 
   useEffect(() => {
-    const hero = document.getElementById("hero");
+    const hero = document.getElementById("portal-journey");
     if (!hero) return;
 
     const observer = new IntersectionObserver(
@@ -61,7 +61,7 @@ export function StickyCTA() {
               trackEvent("CTA Click", { label: "Dismiss Sticky CTA", location: "sticky-bar" });
               setDismissed(true);
             }}
-            className="text-text-muted hover:text-text-secondary transition-colors p-1 flex-shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-blue focus-visible:rounded-sm"
+            className="text-text-muted hover:text-text-secondary transition-colors p-2 min-w-[44px] min-h-[44px] flex-shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-blue focus-visible:rounded-sm flex items-center justify-center"
             aria-label="Dismiss sticky signup bar"
           >
             <svg
