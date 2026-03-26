@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import posthog from "posthog-js";
 
 /**
  * Typed custom event definitions for Plausible analytics.
@@ -35,6 +36,7 @@ export function trackEvent<E extends keyof AnalyticsEvents>(
   if (typeof window !== "undefined" && window.plausible) {
     window.plausible(event, { props: props as Record<string, string> });
   }
+  posthog.capture(event, props);
 }
 
 /**
