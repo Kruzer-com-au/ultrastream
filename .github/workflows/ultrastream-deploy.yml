@@ -3,7 +3,7 @@ name: Ultrastream Deploy
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
   deploy:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-    
+
       - name: Create .env file
         run: |
           echo "NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_SITE_URL }}" >> .env
@@ -20,15 +20,17 @@ jobs:
           echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" >> .env
           echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}" >> .env
           echo "RESEND_FROM_EMAIL=${{ secrets.RESEND_FROM_EMAIL }}" >> .env
-    
+          echo "NEXT_PUBLIC_POSTHOG_TOKEN=${{ secrets.NEXT_PUBLIC_POSTHOG_TOKEN }}" >> .env
+          echo "NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST }}" >> .env
+
       - name: Build containers
         run: |
           docker compose build
-    
+
       - name: Start containers
         run: |
           docker compose up -d
-    
+
       - name: Remove unused images
         run: |
           docker image prune -f
