@@ -1,25 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { waitlistSchema } from "@/lib/validations/waitlist";
 import { sendConfirmationEmail } from "@/lib/email/confirmation";
+import { supabase } from "@/lib/supabase/server";
 
-/**
- * In-memory waitlist store.
- * In production, replace with Supabase:
- *   1. pnpm add @supabase/supabase-js
- *   2. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY
- *   3. Run supabase/migrations/001_waitlist.sql
- *   4. Swap in-memory operations for Supabase client calls
- */
-const waitlistStore: { email: string; createdAt: string }[] = [];
-
-/**
- * Basic in-memory rate limiter.
- * Maps IP -> array of timestamps.
- * TODO: Replace with Upstash Redis for production.
- */
 const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_MAX = 5; // 5 signups per IP per hour
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000;
+const RATE_LIMIT_MAX = 5;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -35,14 +21,8 @@ function recordRequest(ip: string): void {
   rateLimitMap.set(ip, timestamps);
 }
 
-/**
- * POST /api/waitlist
- * Accepts { email } and stores to waitlist.
- * Returns { success, message, count } on success.
- */
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
       request.headers.get("x-real-ip") ||
@@ -50,10 +30,7 @@ export async function POST(request: NextRequest) {
 
     if (!checkRateLimit(ip)) {
       return NextResponse.json(
-        {
-          error:
-            "Slow down, warrior. Too many attempts. Try again in a bit.",
-        },
+        { error: "Slow down, warrior. Too many attempts. Try again in a bit." },
         {
           status: 429,
           headers: {
@@ -64,46 +41,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parse body
     const body = await request.json().catch(() => null);
     if (!body) {
-      return NextResponse.json(
-        { error: "Invalid request body" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    // Validate with Zod
     const result = waitlistSchema.safeParse(body);
     if (!result.success) {
-      return NextResponse.json(
-        { error: "Invalid email address" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    const { email } = result.data;
-    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedEmail = result.data.email.toLowerCase().trim();
 
-    // Check for duplicate
-    const exists = waitlistStore.find((w) => w.email === normalizedEmail);
-    if (exists) {
-      return NextResponse.json(
-        {
-          error:
-            "You're already on the list, revolutionary! We'll be in touch.",
-        },
-        { status: 409 }
-      );
+    // Capture referral source from body and country from Vercel/Cloudflare geo headers
+    const referralSource = typeof body.referral_source === "string" ? body.referral_source.slice(0, 100) : null;
+    const ipCountry =
+      request.headers.get("x-vercel-ip-country") ||
+      request.headers.get("cf-ipcountry") ||
+      null;
+
+    const { error: insertError } = await supabase
+      .from("waitlist")
+      .insert({ email: normalizedEmail, referral_source: referralSource, ip_country: ipCountry });
+
+    if (insertError) {
+      // Postgres unique violation code
+      if (insertError.code === "23505") {
+        return NextResponse.json(
+          { error: "You're already on the list, revolutionary! We'll be in touch." },
+          { status: 409 }
+        );
+      }
+      console.error("[WAITLIST DB ERROR]", insertError);
+      return NextResponse.json({ error: "Something went wrong. Try again." }, { status: 500 });
     }
 
-    // Store signup
-    waitlistStore.push({
-      email: normalizedEmail,
-      createdAt: new Date().toISOString(),
-    });
+    const { count } = await supabase
+      .from("waitlist")
+      .select("*", { count: "exact", head: true });
 
-    // Send confirmation email (fire and forget -- don't block signup on email)
     sendConfirmationEmail(normalizedEmail).catch((err) =>
       console.error("[EMAIL ERROR]", err)
     );
@@ -111,26 +87,19 @@ export async function POST(request: NextRequest) {
     recordRequest(ip);
 
     return NextResponse.json(
-      {
-        success: true,
-        message: "Welcome to the revolution!",
-        count: waitlistStore.length,
-      },
+      { success: true, message: "Welcome to the revolution!", count: count ?? 0 },
       { status: 201 }
     );
   } catch (err) {
     console.error("[WAITLIST ERROR]", err);
-    return NextResponse.json(
-      { error: "Something went wrong. Try again." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Something went wrong. Try again." }, { status: 500 });
   }
 }
 
-/**
- * GET /api/waitlist
- * Returns the current waitlist count for social proof.
- */
 export async function GET() {
-  return NextResponse.json({ count: waitlistStore.length });
+  const { count } = await supabase
+    .from("waitlist")
+    .select("*", { count: "exact", head: true });
+
+  return NextResponse.json({ count: count ?? 0 });
 }

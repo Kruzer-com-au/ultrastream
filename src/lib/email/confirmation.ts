@@ -6,9 +6,9 @@
 export async function sendConfirmationEmail(
   email: string
 ): Promise<{ success: boolean; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = process.env.NEXT_RESEND_API_KEY;
   const fromEmail =
-    process.env.RESEND_FROM_EMAIL || "ULTRASTREAM <noreply@ultrastream.gg>";
+    process.env.RESEND_FROM_EMAIL || "ULTRASTREAM <onboarding@resend.dev>";
 
   // If no API key, mock the response (dev mode)
   if (!apiKey) {

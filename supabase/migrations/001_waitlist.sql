@@ -1,10 +1,7 @@
-CREATE TABLE IF NOT EXISTS waitlist (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-  referral_source TEXT,
-  ip_country TEXT
+create table if not exists waitlist (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  created_at timestamptz not null default now()
 );
 
-CREATE INDEX idx_waitlist_email ON waitlist(email);
-CREATE INDEX idx_waitlist_created_at ON waitlist(created_at DESC);
+create index if not exists waitlist_email_idx on waitlist (email);
