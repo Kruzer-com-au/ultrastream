@@ -24,7 +24,7 @@ export const features: Feature[] = [
     title: "GET PAID TO WATCH",
     tagline: "Your time has value. We actually pay you for it.",
     description:
-      "Proof-of-Engagement rewards you with KZR tokens for actually watching and participating. Share your bandwidth, earn more. This isn't fake channel points -- it's real value you can spend or save.",
+      "Proof of engagement rewards you for actually watching and participating. Share your bandwidth, receive more rewards.",
     icon: "GEM",
     accentColor: "#00D4FF",
     accentRgb: "0, 212, 255",
