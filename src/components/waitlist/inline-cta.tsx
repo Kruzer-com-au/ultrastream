@@ -35,6 +35,9 @@ export function InlineCTA() {
     { scope: ref }
   );
 
+  return null; // Hidden by user request
+
+  /*
   return (
     <Section background="darker" spacing="sm">
       <Container size="md">
@@ -50,4 +53,5 @@ export function InlineCTA() {
       </Container>
     </Section>
   );
+  */
 }
