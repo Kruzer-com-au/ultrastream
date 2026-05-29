@@ -35,19 +35,23 @@ export function InlineCTA() {
     { scope: ref }
   );
 
-  // return (
-  //   <Section background="darker" spacing="sm">
-  //     <Container size="md">
-  //       <div ref={ref} className="text-center py-8">
-  //         <p className="text-display-sm text-text-primary mb-2">
-  //           Seen enough?
-  //         </p>
-  //         <p className="text-body-md text-text-secondary mb-6">
-  //           Stop scrolling. Start earning. Join now.
-  //         </p>
-  //         <WaitlistForm variant="inline" onSuccess={handleSuccess} />
-  //       </div>
-  //     </Container>
-  //   </Section>
-  // );
+  return null; // Hidden by user request
+
+  /*
+  return (
+    <Section background="darker" spacing="sm">
+      <Container size="md">
+        <div ref={ref} className="text-center py-8">
+          <p className="text-display-sm text-text-primary mb-2">
+            Seen enough?
+          </p>
+          <p className="text-body-md text-text-secondary mb-6">
+            Stop scrolling. Start earning. Join now.
+          </p>
+          <WaitlistForm variant="inline" onSuccess={handleSuccess} />
+        </div>
+      </Container>
+    </Section>
+  );
+  */
 }
