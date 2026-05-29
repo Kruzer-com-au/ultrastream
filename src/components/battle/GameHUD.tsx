@@ -89,6 +89,12 @@ export default function GameHUD({
     const nickname = generateNickname(trimmed);
     onSetPlayer(trimmed, nickname);
     setRegistrationPhase('ready');
+    // Fire-and-forget: add to Brevo contacts (non-blocking)
+    fetch('/api/brevo-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: trimmed }),
+    }).catch(() => {});
   }, [emailInput, onSetPlayer]);
 
   const handleSkipRegistration = useCallback(() => {
