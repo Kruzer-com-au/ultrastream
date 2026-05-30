@@ -148,7 +148,7 @@ export function UltraverseSection() {
             {[
               {
                 label: "Shared Economy",
-                desc: "KZR tokens work across the entire ULTRAVERSE ecosystem",
+                desc: "Unlock access to the future of gaming, creating & streaming.",
                 color: "text-gold",
               },
               {

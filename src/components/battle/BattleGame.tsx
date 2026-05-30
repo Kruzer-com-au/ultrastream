@@ -152,7 +152,7 @@ export default function BattleGame() {
     const tapOrClick = isMobile ? 'Tap' : 'Click';
     const tappingOrClicking = isMobile ? 'tapping' : 'clicking';
     if (!gameStarted) return 'Corporate giants are exploiting creators. Time to fight back.';
-    if (gameOver) return 'The old platforms can\'t be beaten alone. Join ULTRASTREAM \u2014 where creators fight back.';
+    {/*} if (gameOver) return 'The old platforms can\'t be beaten alone. Join ULTRASTREAM \u2014 where creators fight back.'; */}
     if (wave === 1) return `${tapOrClick} on the corporate enemies to defeat them!`;
     if (wave === 2) return `More suits incoming \u2014 keep ${tappingOrClicking}!`;
     if (wave === 3) return 'They just keep coming... how long can you hold?';
@@ -297,6 +297,7 @@ export default function BattleGame() {
         </p>
 
         {/* Post-game CTA button (duplicated from HUD for better visibility) */}
+        {/*
         {gameOver && (
           <button
             onClick={handleJoinRevolution}
@@ -332,7 +333,7 @@ export default function BattleGame() {
           >
             JOIN THE REVOLUTION
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Vignette overlay for cinematic edges */}

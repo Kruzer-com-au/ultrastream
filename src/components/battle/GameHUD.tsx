@@ -94,7 +94,7 @@ export default function GameHUD({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: trimmed }),
-    }).catch(() => {});
+    }).catch(() => { });
   }, [emailInput, onSetPlayer]);
 
   const handleSkipRegistration = useCallback(() => {
@@ -208,7 +208,7 @@ export default function GameHUD({
           // Force leaderboard to refetch after score is submitted
           setLeaderboardKey((k) => k + 1);
         })
-        .catch(() => {/* silent fail */});
+        .catch(() => {/* silent fail */ });
     }
   }, [gameOver, scoreSubmitted, playerNickname, playerEmail, score, wave]);
 
@@ -684,7 +684,7 @@ export default function GameHUD({
                   REGISTER &amp; FIGHT
                 </button>
 
-                <button
+                {/*<button
                   onClick={handleSkipRegistration}
                   style={{
                     background: 'none',
@@ -701,7 +701,7 @@ export default function GameHUD({
                   }}
                 >
                   Skip — play as guest
-                </button>
+                </button>*/}
               </div>
             </>
           ) : (
@@ -920,6 +920,7 @@ export default function GameHUD({
           )}
 
           {/* Leaderboard - shown immediately */}
+          {/*
           <div style={{ width: '100%', maxWidth: isMobile ? '95vw' : 400, marginBottom: 16 }}>
             <Leaderboard
               key={leaderboardKey}
@@ -928,7 +929,7 @@ export default function GameHUD({
               playerWave={wave}
               initialData={submittedLeaderboard}
             />
-          </div>
+          </div>*/}
 
           {/* Action buttons */}
           <div style={{
@@ -966,7 +967,7 @@ export default function GameHUD({
               PLAY AGAIN
             </button>
 
-            <button
+            {/*<button
               onClick={onJoinRevolution}
               style={{
                 pointerEvents: 'auto',
@@ -993,10 +994,9 @@ export default function GameHUD({
               }}
             >
               JOIN THE REVOLUTION
-            </button>
+            </button>*/}
           </div>
-
-          {/* "Not you?" re-login link */}
+          {/*
           {!showReLogin ? (
             <button
               onClick={() => setShowReLogin(true)}
@@ -1093,7 +1093,7 @@ export default function GameHUD({
                 </button>
               </div>
             </div>
-          )}
+          )} */}
         </div>
       )}
     </div>
