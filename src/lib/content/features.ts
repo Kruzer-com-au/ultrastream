@@ -64,7 +64,7 @@ export const features: Feature[] = [
     title: "PART OF SOMETHING BIGGER",
     tagline: "ULTRASTREAM + ULTRAVERSE.games = the future of gaming entertainment.",
     description:
-      "ULTRASTREAM lives within the ULTRAVERSE.games ecosystem. Cross-platform benefits, shared community, unified token economy. Your streaming career connects to the entire gaming universe.",
+      "ULTRASTREAM lives within the ULTRAVERSE.games ecosystem. Cross-platform benefits, shared community. Your streaming career connects to the entire gaming universe.",
     icon: "GALAXY",
     accentColor: "#8B5CF6",
     accentRgb: "139, 92, 246",

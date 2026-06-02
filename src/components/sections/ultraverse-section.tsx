@@ -147,7 +147,7 @@ export function UltraverseSection() {
           <div className="uv-animate grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 max-w-3xl mx-auto">
             {[
               {
-                label: "Shared Economy",
+                label: "Shared Ecosystem",
                 desc: "Unlock access to the future of gaming, creating & streaming.",
                 color: "text-gold",
               },
